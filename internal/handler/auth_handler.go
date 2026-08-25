@@ -30,3 +30,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	response.Created(c, user)
 }
+
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req usecase.LoginRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request body", err.Error())
+		return
+	}
+
+	result, err := h.usecase.Login(c.Request.Context(), req)
+	if err != nil {
+		response.Unauthorized(c, err.Error())
+		return
+	}
+
+	response.OK(c, result)
+
+}
