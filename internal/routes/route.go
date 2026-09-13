@@ -10,5 +10,6 @@ func SetupRoutes(r *gin.Engine, h *internal.Handlers) {
 	api := r.Group("/api/v1")
 
 	AuthRoute(api, h.Auth)
+	UserRoute(api, h.User)
 
 }
