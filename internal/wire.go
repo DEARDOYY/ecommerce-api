@@ -10,6 +10,7 @@ import (
 
 type Handlers struct {
 	Auth *handler.AuthHandler
+	User *handler.UserHandler
 }
 
 func InitHandlers() *Handlers {
@@ -21,7 +22,11 @@ func InitHandlers() *Handlers {
 	authUsecase := usecase.NewAuthUsecase(userRepo)
 	authHandler := handler.NewAuthHandler(authUsecase)
 
+	userUsecase := usecase.NewUserUsecase(userRepo)
+	userHandler := handler.NewUserHandler(userUsecase)
+
 	return &Handlers{
 		Auth: authHandler,
+		User: userHandler,
 	}
 }
