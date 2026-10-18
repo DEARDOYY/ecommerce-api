@@ -10,7 +10,7 @@ import (
 )
 
 type UpdateUserInput struct {
-	Name  string `json:"name" binding:"omitempty,min=1,max=100"`
+	Name  string `json:"name" binding:"required,min=1,max=100"`
 	Email string `json:"email" binding:"required,email"`
 }
 
