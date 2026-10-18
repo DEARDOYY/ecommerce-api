@@ -53,8 +53,8 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
-	var input usecase.UpdateUserInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var req usecase.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		if errors.Is(err, io.EOF) {
 			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
 			return
@@ -63,7 +63,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.UpdateUser(c.Request.Context(), input, id); err != nil {
+	if err := h.usecase.UpdateUser(c.Request.Context(), req, id); err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
