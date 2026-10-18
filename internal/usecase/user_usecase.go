@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UpdateUserInput struct {
+type UpdateUserRequest struct {
 	Name  string `json:"name" binding:"required,min=1,max=100"`
 	Email string `json:"email" binding:"required,email"`
 }
@@ -18,7 +18,7 @@ type UserUsecase interface {
 	GetUserAll(ctx context.Context) ([]*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetUserByID(ctx context.Context, id string) (*domain.User, error)
-	UpdateUser(ctx context.Context, input UpdateUserInput, id string) error
+	UpdateUser(ctx context.Context, input UpdateUserRequest, id string) error
 }
 
 type userUsecase struct {
@@ -58,7 +58,7 @@ func (u *userUsecase) GetUserByID(ctx context.Context, id string) (*domain.User,
 	return user, nil
 }
 
-func (u *userUsecase) UpdateUser(ctx context.Context, input UpdateUserInput, id string) error {
+func (u *userUsecase) UpdateUser(ctx context.Context, req UpdateUserRequest, id string) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -69,8 +69,8 @@ func (u *userUsecase) UpdateUser(ctx context.Context, input UpdateUserInput, id 
 		return err
 	}
 
-	user.Name = input.Name
-	user.Email = input.Email
+	user.Name = req.Name
+	user.Email = req.Email
 
 	err = u.repo.Update(ctx, user)
 	if err != nil {
