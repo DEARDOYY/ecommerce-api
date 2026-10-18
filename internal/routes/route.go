@@ -11,5 +11,6 @@ func SetupRoutes(r *gin.Engine, h *internal.Handlers) {
 
 	AuthRoute(api, h.Auth)
 	UserRoute(api, h.User)
+	CategoryRoute(api, h.Category)
 
 }
