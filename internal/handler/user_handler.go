@@ -59,7 +59,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
 			return
 		}
-		respondError(c, http.StatusBadRequest, ErrCodeValidation, err.Error())
+		respondError(c, http.StatusBadRequest, ErrCodeValidation, validationMessage(err))
 		return
 	}
 
