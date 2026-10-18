@@ -11,10 +11,12 @@ func CategoryRoute(rg *gin.RouterGroup, h *handler.CategoryHandler) {
 	{
 		category.POST("", h.CreateCategory)
 
-		// category.GET("", h.GetCategories)
-		// category.GET("/:id", h.GetCategoryByID)
-		// category.POST("", h.CreateCategory)
-		// category.PUT("/:id", h.UpdateCategory)
-		// category.DELETE("/:id", h.DeleteCategory)
+		/**
+		category.GET("", h.GetCategories)
+		category.GET("/:id", h.GetCategoryByID)
+		category.POST("", h.CreateCategory)
+		category.PUT("/:id", h.UpdateCategory)
+		category.DELETE("/:id", h.DeleteCategory)
+		*/
 	}
 }
