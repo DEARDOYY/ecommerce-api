@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"ecommerce-api/internal/domain"
 	"ecommerce-api/internal/usecase"
+	"errors"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserHandler struct {
@@ -20,7 +20,7 @@ func NewUserHandler(usecase usecase.UserUsecase) *UserHandler {
 func (h *UserHandler) GetUserAll(c *gin.Context) {
 	users, err := h.usecase.GetUserAll(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
 
@@ -32,7 +32,7 @@ func (h *UserHandler) GetUserByEmail(c *gin.Context) {
 
 	user, err := h.usecase.GetUserByEmail(c.Request.Context(), email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	user, err := h.usecase.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
 
@@ -53,17 +53,18 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
-	var user domain.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var input usecase.UpdateUserInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		if errors.Is(err, io.EOF) {
+			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
+			return
+		}
+		respondError(c, http.StatusBadRequest, ErrCodeValidation, err.Error())
 		return
 	}
 
-	user.ID, _ = primitive.ObjectIDFromHex(id)
-
-	err := h.usecase.UpdateUser(c.Request.Context(), &user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.usecase.UpdateUser(c.Request.Context(), input, id); err != nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
 
