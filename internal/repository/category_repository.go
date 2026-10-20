@@ -18,6 +18,7 @@ type CategoryRepository interface {
 	Create(ctx context.Context, category *domain.Category) error
 	EnsureIndexes(ctx context.Context) error
 	FindAll(ctx context.Context) ([]*domain.Category, error)
+	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Category, error)
 }
 
 type categoryRepository struct {
@@ -74,4 +75,13 @@ func (r *categoryRepository) FindAll(ctx context.Context) ([]*domain.Category, e
 	}
 
 	return categories, nil
+}
+
+func (r *categoryRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Category, error) {
+	var category domain.Category
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&category)
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
 }
