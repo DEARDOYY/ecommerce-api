@@ -2,6 +2,8 @@ package handler
 
 import (
 	"errors"
+	"io"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +24,20 @@ func respondError(c *gin.Context, status int, code, message string) {
 			"message": message,
 		},
 	})
+}
+
+// bindJSON binds the request body into dst. On failure it writes the 400
+// response itself and returns false, so callers just `return`.
+func bindJSON(c *gin.Context, dst any) bool {
+	if err := c.ShouldBindJSON(dst); err != nil {
+		if errors.Is(err, io.EOF) {
+			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
+			return false
+		}
+		respondError(c, http.StatusBadRequest, ErrCodeValidation, validationMessage(err))
+		return false
+	}
+	return true
 }
 
 func validationMessage(err error) string {
