@@ -37,3 +37,13 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Category created successfully"})
 }
+
+func (h *CategoryHandler) GetCategoriesAll(c *gin.Context) {
+	categories, err := h.usecase.GetCategoriesAll(c.Request.Context())
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
+}
