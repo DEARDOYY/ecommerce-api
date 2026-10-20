@@ -11,6 +11,7 @@ import (
 const (
 	ErrCodeInvalidRequest = "INVALID_REQUEST"
 	ErrCodeValidation     = "VALIDATION_ERROR"
+	ErrCodeConflict       = "CONFLICT"
 	ErrCodeInternal       = "INTERNAL_ERROR"
 )
 
