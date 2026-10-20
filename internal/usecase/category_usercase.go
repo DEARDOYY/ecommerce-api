@@ -14,6 +14,7 @@ type CategoryRequest struct {
 
 type CategoryUsecase interface {
 	CreateCategory(req CategoryRequest) error
+	GetCategoriesAll(ctx context.Context) ([]*domain.Category, error)
 }
 
 type categoryUsecase struct {
@@ -22,6 +23,14 @@ type categoryUsecase struct {
 
 func NewCategoryUsecase(repo repository.CategoryRepository) CategoryUsecase {
 	return &categoryUsecase{repo: repo}
+}
+
+func generateSlug(name string) string {
+	// Implement your slug generation logic here
+	// For example, you can convert the name to lowercase and replace spaces with hyphens
+	slug := strings.ToLower(name)
+	slug = strings.ReplaceAll(slug, " ", "-")
+	return slug
 }
 
 func (u *categoryUsecase) CreateCategory(req CategoryRequest) error {
@@ -34,10 +43,10 @@ func (u *categoryUsecase) CreateCategory(req CategoryRequest) error {
 	return u.repo.Create(context.Background(), category)
 }
 
-func generateSlug(name string) string {
-	// Implement your slug generation logic here
-	// For example, you can convert the name to lowercase and replace spaces with hyphens
-	slug := strings.ToLower(name)
-	slug = strings.ReplaceAll(slug, " ", "-")
-	return slug
+func (u *categoryUsecase) GetCategoriesAll(ctx context.Context) ([]*domain.Category, error) {
+	categories, err := u.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
 }
