@@ -7,7 +7,6 @@ import (
 
 	"ecommerce-api/internal/repository"
 	"errors"
-	"io"
 	"net/http"
 )
 
@@ -23,12 +22,7 @@ func NewCategoryHandler(usecase usecase.CategoryUsecase) *CategoryHandler {
 
 func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 	var req usecase.CategoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		if errors.Is(err, io.EOF) {
-			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
-			return
-		}
-		respondError(c, http.StatusBadRequest, ErrCodeValidation, validationMessage(err))
+	if !bindJSON(c, &req) {
 		return
 	}
 
