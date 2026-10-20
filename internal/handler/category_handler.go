@@ -58,3 +58,15 @@ func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, category)
 }
+
+func (h *CategoryHandler) GetCategoryBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	category, err := h.usecase.GetCategoryBySlug(c.Request.Context(), slug)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		return
+	}
+
+	// category is nil when not found: respond 200 with null
+	c.JSON(http.StatusOK, category)
+}
