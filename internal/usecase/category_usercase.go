@@ -6,6 +6,8 @@ import (
 	"ecommerce-api/internal/repository"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CategoryRequest struct {
@@ -15,6 +17,7 @@ type CategoryRequest struct {
 type CategoryUsecase interface {
 	CreateCategory(req CategoryRequest) error
 	GetCategoriesAll(ctx context.Context) ([]*domain.Category, error)
+	GetCategoryByID(ctx context.Context, id string) (*domain.Category, error)
 }
 
 type categoryUsecase struct {
@@ -49,4 +52,18 @@ func (u *categoryUsecase) GetCategoriesAll(ctx context.Context) ([]*domain.Categ
 		return nil, err
 	}
 	return categories, nil
+}
+
+func (u *categoryUsecase) GetCategoryByID(ctx context.Context, id string) (*domain.Category, error) {
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	category, err := u.repo.FindByID(ctx, objectID)
+	if err != nil {
+		return nil, err
+	}
+	return category, nil
 }
