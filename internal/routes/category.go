@@ -14,5 +14,6 @@ func CategoryRoute(rg *gin.RouterGroup, h *handler.CategoryHandler) {
 		category.POST("", middleware.AuthRequired(), middleware.RequireRole("admin"), h.CreateCategory)
 		category.GET("", h.GetCategoriesAll)
 		category.GET("/:id", h.GetCategoryByID)
+		category.GET("/slug/:slug", h.GetCategoryBySlug)
 	}
 }
