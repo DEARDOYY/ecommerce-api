@@ -19,6 +19,7 @@ type CategoryRepository interface {
 	EnsureIndexes(ctx context.Context) error
 	FindAll(ctx context.Context) ([]*domain.Category, error)
 	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Category, error)
+	FindBySlug(ctx context.Context, slug string) (*domain.Category, error)
 }
 
 type categoryRepository struct {
@@ -81,6 +82,18 @@ func (r *categoryRepository) FindByID(ctx context.Context, id primitive.ObjectID
 	var category domain.Category
 	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&category)
 	if err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (r *categoryRepository) FindBySlug(ctx context.Context, slug string) (*domain.Category, error) {
+	var category domain.Category
+	err := r.collection.FindOne(ctx, bson.M{"slug": slug}).Decode(&category)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // not found is not an error
+		}
 		return nil, err
 	}
 	return &category, nil
