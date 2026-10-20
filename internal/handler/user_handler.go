@@ -2,8 +2,6 @@ package handler
 
 import (
 	"ecommerce-api/internal/usecase"
-	"errors"
-	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -54,12 +52,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 	var req usecase.UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		if errors.Is(err, io.EOF) {
-			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "request body is required")
-			return
-		}
-		respondError(c, http.StatusBadRequest, ErrCodeValidation, validationMessage(err))
+	if !bindJSON(c, &req) {
 		return
 	}
 
