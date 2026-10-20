@@ -51,3 +51,11 @@ func (r *categoryRepository) Create(ctx context.Context, category *domain.Catego
 	category.ID = result.InsertedID.(primitive.ObjectID)
 	return nil
 }
+
+func (r *categoryRepository) FindAll(ctx context.Context) ([]*domain.Category, error) {
+	var categories []*domain.Category
+	if err := r.collection.Find(ctx, bson.M{}, options.Find().SetSort(bson.D{{Key: "name", Value: 1}})).All(&categories); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
