@@ -17,6 +17,7 @@ import (
 type CategoryRepository interface {
 	Create(ctx context.Context, category *domain.Category) error
 	EnsureIndexes(ctx context.Context) error
+	FindAll(ctx context.Context) ([]*domain.Category, error)
 }
 
 type categoryRepository struct {
@@ -54,8 +55,23 @@ func (r *categoryRepository) Create(ctx context.Context, category *domain.Catego
 
 func (r *categoryRepository) FindAll(ctx context.Context) ([]*domain.Category, error) {
 	var categories []*domain.Category
-	if err := r.collection.Find(ctx, bson.M{}, options.Find().SetSort(bson.D{{Key: "name", Value: 1}})).All(&categories); err != nil {
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var category domain.Category
+		if err := cursor.Decode(&category); err != nil {
+			return nil, err
+		}
+		categories = append(categories, &category)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
 	return categories, nil
 }
