@@ -4,6 +4,8 @@ import (
 	"context"
 	"ecommerce-api/internal/domain"
 	"ecommerce-api/internal/repository"
+	"strings"
+	"time"
 )
 
 type CategoryRequest struct {
@@ -23,8 +25,19 @@ func NewCategoryUsecase(repo repository.CategoryRepository) CategoryUsecase {
 }
 
 func (u *categoryUsecase) CreateCategory(req CategoryRequest) error {
+
 	category := &domain.Category{
-		Name: req.Name,
+		Name:      req.Name,
+		Slug:      generateSlug(req.Name),
+		CreatedAt: time.Now(),
 	}
 	return u.repo.Create(context.Background(), category)
+}
+
+func generateSlug(name string) string {
+	// Implement your slug generation logic here
+	// For example, you can convert the name to lowercase and replace spaces with hyphens
+	slug := strings.ToLower(name)
+	slug = strings.ReplaceAll(slug, " ", "-")
+	return slug
 }
