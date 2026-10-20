@@ -18,6 +18,7 @@ type CategoryUsecase interface {
 	CreateCategory(req CategoryRequest) error
 	GetCategoriesAll(ctx context.Context) ([]*domain.Category, error)
 	GetCategoryByID(ctx context.Context, id string) (*domain.Category, error)
+	GetCategoryBySlug(ctx context.Context, slug string) (*domain.Category, error)
 }
 
 type categoryUsecase struct {
@@ -62,6 +63,14 @@ func (u *categoryUsecase) GetCategoryByID(ctx context.Context, id string) (*doma
 	}
 
 	category, err := u.repo.FindByID(ctx, objectID)
+	if err != nil {
+		return nil, err
+	}
+	return category, nil
+}
+
+func (u *categoryUsecase) GetCategoryBySlug(ctx context.Context, slug string) (*domain.Category, error) {
+	category, err := u.repo.FindBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
