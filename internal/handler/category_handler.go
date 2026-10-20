@@ -47,3 +47,14 @@ func (h *CategoryHandler) GetCategoriesAll(c *gin.Context) {
 
 	c.JSON(http.StatusOK, categories)
 }
+
+func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
+	id := c.Param("id")
+	category, err := h.usecase.GetCategoryByID(c.Request.Context(), id)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, category)
+}
