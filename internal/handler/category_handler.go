@@ -71,6 +71,5 @@ func (h *CategoryHandler) GetCategoryBySlug(c *gin.Context) {
 		return
 	}
 
-	// category is nil when not found: respond 200 with null
 	c.JSON(http.StatusOK, category)
 }
