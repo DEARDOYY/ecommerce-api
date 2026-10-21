@@ -13,6 +13,7 @@ import (
 const (
 	ErrCodeInvalidRequest = "INVALID_REQUEST"
 	ErrCodeValidation     = "VALIDATION_ERROR"
+	ErrCodeUnauthorized   = "UNAUTHORIZED"
 	ErrCodeConflict       = "CONFLICT"
 	ErrCodeInternal       = "INTERNAL_ERROR"
 )
@@ -59,4 +60,12 @@ func validationMessage(err error) string {
 	default:
 		return field + " is invalid"
 	}
+}
+
+func respondSuccess(c *gin.Context, status int, data any) {
+	c.JSON(status, gin.H{"data": data})
+}
+
+func respondMessage(c *gin.Context, status int, message string) {
+	c.JSON(status, gin.H{"message": message})
 }
