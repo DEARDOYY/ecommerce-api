@@ -4,6 +4,7 @@ import (
 	"context"
 	"ecommerce-api/internal/domain"
 	"ecommerce-api/internal/repository"
+	"errors"
 	"strings"
 	"time"
 
@@ -55,18 +56,15 @@ func (u *categoryUsecase) GetCategoriesAll(ctx context.Context) ([]*domain.Categ
 	return categories, nil
 }
 
+var ErrInvalidCategoryID = errors.New("invalid category id")
+
 func (u *categoryUsecase) GetCategoryByID(ctx context.Context, id string) (*domain.Category, error) {
 
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidCategoryID
 	}
-
-	category, err := u.repo.FindByID(ctx, objectID)
-	if err != nil {
-		return nil, err
-	}
-	return category, nil
+	return u.repo.FindByID(ctx, objectID)
 }
 
 func (u *categoryUsecase) GetCategoryBySlug(ctx context.Context, slug string) (*domain.Category, error) {
