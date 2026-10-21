@@ -52,6 +52,10 @@ func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
 	id := c.Param("id")
 	category, err := h.usecase.GetCategoryByID(c.Request.Context(), id)
 	if err != nil {
+		if errors.Is(err, usecase.ErrInvalidCategoryID) {
+			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid category id")
+			return
+		}
 		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
 		return
 	}
