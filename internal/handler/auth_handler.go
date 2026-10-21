@@ -5,6 +5,8 @@ import (
 	"ecommerce-api/pkg/response"
 
 	"github.com/gin-gonic/gin"
+
+	"net/http"
 )
 
 type AuthHandler struct {
@@ -34,14 +36,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req usecase.LoginRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request body", err.Error())
+	if !bindJSON(c, &req) {
 		return
 	}
 
 	result, err := h.usecase.Login(c.Request.Context(), req)
 	if err != nil {
-		response.Unauthorized(c, err.Error())
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "Invalid email or password")
 		return
 	}
 
