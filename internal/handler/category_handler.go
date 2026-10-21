@@ -35,7 +35,7 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Category created successfully"})
+	respondMessage(c, http.StatusCreated, "Category created successfully")
 }
 
 func (h *CategoryHandler) GetCategoriesAll(c *gin.Context) {
@@ -45,7 +45,7 @@ func (h *CategoryHandler) GetCategoriesAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, categories)
+	respondSuccess(c, http.StatusOK, categories)
 }
 
 func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
@@ -60,7 +60,7 @@ func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, category)
+	respondSuccess(c, http.StatusOK, category)
 }
 
 func (h *CategoryHandler) GetCategoryBySlug(c *gin.Context) {
@@ -71,5 +71,5 @@ func (h *CategoryHandler) GetCategoryBySlug(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, category)
+	respondSuccess(c, http.StatusOK, category)
 }
