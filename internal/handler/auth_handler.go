@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"net/http"
+
 	"ecommerce-api/internal/usecase"
 	"ecommerce-api/pkg/response"
 
 	"github.com/gin-gonic/gin"
-
-	"net/http"
 )
 
 type AuthHandler struct {
