@@ -55,6 +55,10 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
+	if !authorizeSelfOrAdmin(c, id) {
+		return
+	}
+
 	var req usecase.UpdateUserRequest
 	if !bindJSON(c, &req) {
 		return
@@ -70,6 +74,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	id := c.Param("id")
+
 	var req usecase.UpdateUserRoleRequest
 	if !bindJSON(c, &req) {
 		return
