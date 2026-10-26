@@ -43,6 +43,7 @@ func (u *categoryUsecase) CreateCategory(req CategoryRequest) error {
 	category := &domain.Category{
 		Name:      req.Name,
 		Slug:      generateSlug(req.Name),
+		IsActive:  true,
 		CreatedAt: time.Now(),
 	}
 	return u.repo.Create(context.Background(), category)
