@@ -13,5 +13,6 @@ func UserRoute(rg *gin.RouterGroup, h *handler.UserHandler) {
 		user.GET("/email", h.GetUserByEmail)
 		user.GET("/:id", h.GetUserByID)
 		user.PUT("/:id", h.UpdateUser)
+		user.PUT("/:id/role", h.UpdateUserRole)
 	}
 }
