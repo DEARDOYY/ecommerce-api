@@ -15,6 +15,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.User, error)
 	Update(ctx context.Context, user *domain.User) error
+	UpdateRole(ctx context.Context, user *domain.User) error
 }
 
 type userRepository struct {
@@ -79,6 +80,14 @@ func (r *userRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*
 
 func (r *userRepository) Update(ctx context.Context, user *domain.User) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": user})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *userRepository) UpdateRole(ctx context.Context, user *domain.User) error {
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"role": user.Role}})
 	if err != nil {
 		return err
 	}
