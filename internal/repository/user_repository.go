@@ -7,6 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"errors"
+
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository interface {
@@ -26,9 +30,22 @@ func NewUserRepository(collection *mongo.Collection) UserRepository { // 👈 re
 	return &userRepository{collection: collection}
 }
 
+var ErrUserExists = errors.New("user already exists")
+
+func (r *userRepository) EnsureIndexes(ctx context.Context) error {
+	_, err := r.collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "email", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	return err
+}
+
 func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return ErrUserExists
+		}
 		return err
 	}
 
