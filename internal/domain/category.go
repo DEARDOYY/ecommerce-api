@@ -10,5 +10,6 @@ type Category struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name      string             `bson:"name" json:"name"`
 	Slug      string             `bson:"slug" json:"slug"`
+	IsActive  bool               `bson:"is_active" json:"is_active"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 }
