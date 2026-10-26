@@ -16,6 +16,7 @@ func NewUserHandler(usecase usecase.UserUsecase) *UserHandler {
 }
 
 func (h *UserHandler) GetUserAll(c *gin.Context) {
+
 	users, err := h.usecase.GetUserAll(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
