@@ -16,6 +16,8 @@ const (
 	ErrCodeUnauthorized   = "UNAUTHORIZED"
 	ErrCodeConflict       = "CONFLICT"
 	ErrCodeInternal       = "INTERNAL_ERROR"
+	ErrCodeNotFound       = "NOT_FOUND"
+	ErrCodeForbidden      = "FORBIDDEN"
 )
 
 func respondError(c *gin.Context, status int, code, message string) {
@@ -68,4 +70,19 @@ func respondSuccess(c *gin.Context, status int, data any) {
 
 func respondMessage(c *gin.Context, status int, message string) {
 	c.JSON(status, gin.H{"message": message})
+}
+
+// authorizeSelfOrAdmin allows the request only when the logged-in user owns
+// the target id or is an admin. On failure it writes the 403 itself and
+// returns false, so callers just `return`.
+func authorizeSelfOrAdmin(c *gin.Context, targetID string) bool {
+	userID, _ := c.Get("user_id")
+	role, _ := c.Get("role")
+
+	if role == "admin" || userID == targetID {
+		return true
+	}
+
+	respondError(c, http.StatusForbidden, ErrCodeForbidden, "you can only access your own account")
+	return false
 }
