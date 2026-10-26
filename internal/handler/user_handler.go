@@ -23,7 +23,7 @@ func (h *UserHandler) GetUserAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	respondSuccess(c, http.StatusOK, users)
 }
 
 func (h *UserHandler) GetUserByEmail(c *gin.Context) {
@@ -35,11 +35,14 @@ func (h *UserHandler) GetUserByEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	respondSuccess(c, http.StatusOK, user)
 }
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
+	if !authorizeSelfOrAdmin(c, id) {
+		return
+	}
 
 	user, err := h.usecase.GetUserByID(c.Request.Context(), id)
 	if err != nil {
@@ -47,7 +50,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	respondSuccess(c, http.StatusOK, user)
 }
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
@@ -62,7 +65,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+	respondMessage(c, http.StatusOK, "User updated successfully")
 }
 
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
@@ -77,5 +80,5 @@ func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User role updated successfully"})
+	respondMessage(c, http.StatusOK, "User role updated successfully")
 }
