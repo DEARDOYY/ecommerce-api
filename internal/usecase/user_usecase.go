@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"ecommerce-api/internal/domain"
 	"ecommerce-api/internal/repository"
@@ -14,11 +15,16 @@ type UpdateUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
+type UpdateUserRoleRequest struct {
+	Role string `json:"role" binding:"required,oneof=admin user"`
+}
+
 type UserUsecase interface {
 	GetUserAll(ctx context.Context) ([]*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetUserByID(ctx context.Context, id string) (*domain.User, error)
 	UpdateUser(ctx context.Context, input UpdateUserRequest, id string) error
+	UpdateUserRole(ctx context.Context, id string, req UpdateUserRoleRequest) error
 }
 
 type userUsecase struct {
@@ -73,6 +79,26 @@ func (u *userUsecase) UpdateUser(ctx context.Context, req UpdateUserRequest, id 
 	user.Email = req.Email
 
 	err = u.repo.Update(ctx, user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *userUsecase) UpdateUserRole(ctx context.Context, id string, req UpdateUserRoleRequest) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	user, err := u.repo.FindByID(ctx, objID)
+	if err != nil {
+		return err
+	}
+
+	user.Role = strings.ToLower(strings.TrimSpace(req.Role))
+
+	err = u.repo.UpdateRole(ctx, user)
 	if err != nil {
 		return err
 	}
