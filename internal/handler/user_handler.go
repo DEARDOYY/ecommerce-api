@@ -63,3 +63,18 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
+
+func (h *UserHandler) UpdateUserRole(c *gin.Context) {
+	id := c.Param("id")
+	var req usecase.UpdateUserRoleRequest
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if err := h.usecase.UpdateUserRole(c.Request.Context(), id, req); err != nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User role updated successfully"})
+}
