@@ -19,18 +19,17 @@ func NewAuthHandler(usecase usecase.AuthUsecase) *AuthHandler {
 
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req usecase.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request body", err.Error())
+	if !bindJSON(c, &req) {
 		return
 	}
 
 	user, err := h.usecase.CreateUser(c.Request.Context(), req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	response.Created(c, user)
+	response.Success(c, http.StatusCreated, user)
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -42,10 +41,25 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	result, err := h.usecase.Login(c.Request.Context(), req)
 	if err != nil {
-		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "Invalid email or password")
+		response.Error(c, http.StatusUnauthorized, response.ErrCodeUnauthorized, "Invalid email or password")
 		return
 	}
 
-	response.OK(c, result)
+	response.Success(c, http.StatusOK, result)
 
+}
+
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	var req usecase.RefreshRequest
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	pair, err := h.usecase.RefreshToken(c.Request.Context(), req)
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, response.ErrCodeUnauthorized, "Invalid or expired refresh token")
+		return
+	}
+
+	response.Success(c, http.StatusOK, pair)
 }
