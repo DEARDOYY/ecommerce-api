@@ -9,12 +9,12 @@ import (
 )
 
 func UserRoute(rg *gin.RouterGroup, h *handler.UserHandler) {
-	user := rg.Group("/users")
+	user := rg.Group("/users", middleware.AuthRequired())
 	{
-		user.GET("", middleware.AuthRequired(), middleware.RequireRole("admin"), h.GetUserAll)
-		user.GET("/email", middleware.AuthRequired(), h.GetUserByEmail)
-		user.GET("/:id", middleware.AuthRequired(), h.GetUserByID)
-		user.PUT("/:id", middleware.AuthRequired(), h.UpdateUser)
-		user.PUT("/:id/role", middleware.AuthRequired(), middleware.RequireRole("admin"), h.UpdateUserRole)
+		user.GET("", middleware.RequireRole("admin"), h.GetUserAll)
+		user.GET("/email", h.GetUserByEmail)
+		user.GET("/:id", h.GetUserByID)
+		user.PUT("/:id", h.UpdateUser)
+		user.PUT("/:id/role", middleware.RequireRole("admin"), h.UpdateUserRole)
 	}
 }
