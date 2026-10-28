@@ -11,6 +11,8 @@ import (
 
 	"ecommerce-api/internal/domain"
 	"ecommerce-api/internal/repository"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RegisterRequest struct {
@@ -26,13 +28,18 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string       `json:"token"`
-	User  *domain.User `json:"user"`
+	jwtPkg.TokenPair
+	User *domain.User `json:"user"`
+}
+
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
 type AuthUsecase interface {
 	CreateUser(ctx context.Context, req RegisterRequest) (*domain.User, error)
 	Login(ctx context.Context, req LoginRequest) (*LoginResponse, error)
+	RefreshToken(ctx context.Context, req RefreshRequest) (*jwtPkg.TokenPair, error)
 }
 
 type authUsecase struct {
@@ -94,14 +101,34 @@ func (u *authUsecase) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 		return nil, errors.New("invalid email or password")
 	}
 
-	// 3. สร้าง JWT token
-	token, err := jwtPkg.GenerateToken(user.ID.Hex(), user.Email, user.Role)
+	// 3. สร้าง access + refresh token
+	pair, err := jwtPkg.GenerateTokenPair(user.ID.Hex(), user.Email, user.Role)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
 
 	return &LoginResponse{
-		Token: token,
-		User:  user,
+		TokenPair: *pair,
+		User:      user,
 	}, nil
+}
+
+func (u *authUsecase) RefreshToken(ctx context.Context, req RefreshRequest) (*jwtPkg.TokenPair, error) {
+	claims, err := jwtPkg.ValidateToken(req.RefreshToken, jwtPkg.TokenTypeRefresh)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	id, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	// โหลด user ใหม่ เพื่อให้ role ล่าสุด และเช็คว่า user ยังมีอยู่
+	user, err := u.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	return jwtPkg.GenerateTokenPair(user.ID.Hex(), user.Email, user.Role)
 }
