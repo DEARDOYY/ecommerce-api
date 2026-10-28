@@ -10,6 +10,8 @@ import (
 	"ecommerce-api/internal/domain"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"errors"
 )
 
 type ProductRepository interface{}
@@ -31,6 +33,8 @@ func (r *productRepository) EnsureIndexes(ctx context.Context) error {
 	})
 	return err
 }
+
+var ErrProductExists = errors.New("product already exists")
 
 func (r *productRepository) Create(ctx context.Context, product *domain.Product) error {
 	result, err := r.collection.InsertOne(ctx, product)
