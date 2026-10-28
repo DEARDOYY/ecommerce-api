@@ -2,6 +2,7 @@ package handler
 
 import (
 	"ecommerce-api/internal/usecase"
+	"ecommerce-api/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,11 +20,11 @@ func (h *UserHandler) GetUserAll(c *gin.Context) {
 
 	users, err := h.usecase.GetUserAll(c.Request.Context())
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, users)
+	response.Success(c, http.StatusOK, users)
 }
 
 func (h *UserHandler) GetUserByEmail(c *gin.Context) {
@@ -31,11 +32,11 @@ func (h *UserHandler) GetUserByEmail(c *gin.Context) {
 
 	user, err := h.usecase.GetUserByEmail(c.Request.Context(), email)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, user)
+	response.Success(c, http.StatusOK, user)
 }
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
@@ -46,11 +47,11 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 	user, err := h.usecase.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, user)
+	response.Success(c, http.StatusOK, user)
 }
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
@@ -65,11 +66,11 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	if err := h.usecase.UpdateUser(c.Request.Context(), req, id); err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondMessage(c, http.StatusOK, "User updated successfully")
+	response.Message(c, http.StatusOK, "User updated successfully")
 }
 
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
@@ -81,9 +82,9 @@ func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	}
 
 	if err := h.usecase.UpdateUserRole(c.Request.Context(), id, req); err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondMessage(c, http.StatusOK, "User role updated successfully")
+	response.Message(c, http.StatusOK, "User role updated successfully")
 }
