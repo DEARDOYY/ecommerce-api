@@ -19,7 +19,7 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 			}
 		}
 
-		response.Error(c, http.StatusForbidden, "Forbidden: insufficient permissions", nil)
+		response.Error(c, http.StatusForbidden, response.ErrCodeForbidden, "Forbidden: insufficient permissions")
 		c.Abort()
 	}
 }
