@@ -2,6 +2,7 @@ package handler
 
 import (
 	"ecommerce-api/internal/usecase"
+	"ecommerce-api/pkg/response"
 
 	"github.com/gin-gonic/gin"
 
@@ -28,24 +29,24 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 
 	if err := h.usecase.CreateCategory(req); err != nil {
 		if errors.Is(err, repository.ErrCategoryExists) {
-			respondError(c, http.StatusConflict, ErrCodeConflict, "category already exists")
+			response.Error(c, http.StatusConflict, response.ErrCodeConflict, "category already exists")
 			return
 		}
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondMessage(c, http.StatusCreated, "Category created successfully")
+	response.Message(c, http.StatusCreated, "Category created successfully")
 }
 
 func (h *CategoryHandler) GetCategoriesAll(c *gin.Context) {
 	categories, err := h.usecase.GetCategoriesAll(c.Request.Context())
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, categories)
+	response.Success(c, http.StatusOK, categories)
 }
 
 func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
@@ -53,23 +54,23 @@ func (h *CategoryHandler) GetCategoryByID(c *gin.Context) {
 	category, err := h.usecase.GetCategoryByID(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidCategoryID) {
-			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid category id")
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "invalid category id")
 			return
 		}
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, category)
+	response.Success(c, http.StatusOK, category)
 }
 
 func (h *CategoryHandler) GetCategoryBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	category, err := h.usecase.GetCategoryBySlug(c.Request.Context(), slug)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, ErrCodeInternal, err.Error())
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, category)
+	response.Success(c, http.StatusOK, category)
 }
