@@ -1,77 +1,30 @@
 package response
 
-import (
-	"net/http"
-	"time"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
+const (
+	ErrCodeInvalidRequest = "INVALID_REQUEST"
+	ErrCodeValidation     = "VALIDATION_ERROR"
+	ErrCodeUnauthorized   = "UNAUTHORIZED"
+	ErrCodeConflict       = "CONFLICT"
+	ErrCodeInternal       = "INTERNAL_ERROR"
+	ErrCodeNotFound       = "NOT_FOUND"
+	ErrCodeForbidden      = "FORBIDDEN"
 )
 
-type Meta struct {
-	Timestamp string `json:"timestamp"`
-}
-
-type SuccessResponse struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
-	Meta    Meta        `json:"meta"`
-}
-
-type ErrorResponse struct {
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Errors  interface{} `json:"errors,omitempty"`
-	Meta    Meta        `json:"meta"`
-}
-
-func meta() Meta {
-	return Meta{Timestamp: time.Now().UTC().Format(time.RFC3339)}
-}
-
-func Success(c *gin.Context, code int, message string, data interface{}) {
-	c.JSON(code, SuccessResponse{
-		Status:  "success",
-		Message: message,
-		Data:    data,
-		Meta:    meta(),
+func Error(c *gin.Context, status int, code, message string) {
+	c.JSON(status, gin.H{
+		"error": gin.H{
+			"code":    code,
+			"message": message,
+		},
 	})
 }
 
-func Error(c *gin.Context, code int, message string, errs interface{}) {
-	c.JSON(code, ErrorResponse{
-		Status:  "error",
-		Message: message,
-		Errors:  errs,
-		Meta:    meta(),
-	})
+func Success(c *gin.Context, status int, data any) {
+	c.JSON(status, gin.H{"data": data})
 }
 
-// Shortcut ที่ใช้บ่อย
-func OK(c *gin.Context, data interface{}) {
-	Success(c, http.StatusOK, "Request successful", data)
-}
-
-func Created(c *gin.Context, data interface{}) {
-	Success(c, http.StatusCreated, "Resource created successfully", data)
-}
-
-func BadRequest(c *gin.Context, message string, errs interface{}) {
-	Error(c, http.StatusBadRequest, message, errs)
-}
-
-func NotFound(c *gin.Context, message string) {
-	Error(c, http.StatusNotFound, message, nil)
-}
-
-func InternalError(c *gin.Context, message string) {
-	Error(c, http.StatusInternalServerError, message, nil)
-}
-
-func Deleted(c *gin.Context, message string) {
-	Success(c, http.StatusOK, message, nil)
-}
-
-func Unauthorized(c *gin.Context, message string) {
-	Error(c, http.StatusUnauthorized, message, nil)
+func Message(c *gin.Context, status int, message string) {
+	c.JSON(status, gin.H{"message": message})
 }
