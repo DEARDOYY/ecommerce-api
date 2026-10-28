@@ -18,3 +18,8 @@ type Product struct {
 	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt   time.Time          `bson:"updated_at" json:"updated_at"`
 }
+
+type ProductWithCategory struct {
+	Product  `bson:",inline"`
+	Category *Category `bson:"category,omitempty" json:"category,omitempty"`
+}
