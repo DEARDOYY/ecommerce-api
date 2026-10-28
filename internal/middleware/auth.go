@@ -14,7 +14,7 @@ func AuthRequired() gin.HandlerFunc {
 		// 1. ดึง token จาก header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Error(c, http.StatusUnauthorized, "Authorization header is required", nil)
+			response.Error(c, http.StatusUnauthorized, response.ErrCodeUnauthorized, "Authorization header is required")
 			c.Abort()
 			return
 		}
@@ -22,15 +22,16 @@ func AuthRequired() gin.HandlerFunc {
 		// 2. เช็ค format ต้องเป็น "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Error(c, http.StatusUnauthorized, "Invalid authorization format", nil)
+			response.Error(c, http.StatusUnauthorized, response.ErrCodeUnauthorized, "Invalid authorization format")
 			c.Abort()
 			return
 		}
 
 		// 3. ถอดรหัส token
-		claims, err := jwtPkg.ValidateToken(parts[1])
+		claims, err := jwtPkg.ValidateToken(parts[1], jwtPkg.TokenTypeAccess)
+
 		if err != nil {
-			response.Error(c, http.StatusUnauthorized, "Invalid or expired token", nil)
+			response.Error(c, http.StatusUnauthorized, response.ErrCodeUnauthorized, "Invalid or expired token")
 			c.Abort()
 			return
 		}
