@@ -9,9 +9,9 @@ import (
 )
 
 func CategoryRoute(rg *gin.RouterGroup, h *handler.CategoryHandler) {
-	category := rg.Group("/categories")
+	category := rg.Group("/categories", middleware.AuthRequired())
 	{
-		category.POST("", middleware.AuthRequired(), middleware.RequireRole("admin"), h.CreateCategory)
+		category.POST("", middleware.RequireRole("admin"), h.CreateCategory)
 		category.GET("", h.GetCategoriesAll)
 		category.GET("/:id", h.GetCategoryByID)
 		category.GET("/slug/:slug", h.GetCategoryBySlug)
