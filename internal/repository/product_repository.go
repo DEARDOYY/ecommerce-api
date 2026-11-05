@@ -14,7 +14,10 @@ import (
 	"errors"
 )
 
-type ProductRepository interface{}
+type ProductRepository interface {
+	EnsureIndexes(ctx context.Context) error
+	Create(ctx context.Context, product *domain.Product) error
+}
 
 type productRepository struct {
 	collection *mongo.Collection
