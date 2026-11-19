@@ -57,10 +57,24 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	response.Success(c, http.StatusOK, products)
 }
 
-
 func (h *ProductHandler) GetProductByID(c *gin.Context) {
 	id := c.Param("id")
 	product, err := h.usecase.GetProductByID(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, usecase.ErrProductNotFound) {
+			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, product)
+}
+
+func (h *ProductHandler) GetProductByName(c *gin.Context) {
+	name := c.Query("name")
+	product, err := h.usecase.GetProductByName(c.Request.Context(), name)
 	if err != nil {
 		if errors.Is(err, usecase.ErrProductNotFound) {
 			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
