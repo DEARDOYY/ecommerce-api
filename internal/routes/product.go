@@ -12,5 +12,6 @@ func ProductRoutes(rg *gin.RouterGroup, h *handler.ProductHandler) {
 	product := rg.Group("/products", middleware.AuthRequired())
 	{
 		product.POST("", middleware.RequireRole("admin"), h.CreateProduct)
+		product.GET("", h.GetAllProducts)
 	}
 }
