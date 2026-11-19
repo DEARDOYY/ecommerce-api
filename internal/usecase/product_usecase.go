@@ -19,9 +19,12 @@ type ProductRequest struct {
 
 type ProductUsecase interface {
 	CreateProduct(req ProductRequest) error
+	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
+	GetProductByID(ctx context.Context, id string) (*domain.Product, error)
 }
 
 var ErrCategoryNotFound = errors.New("category not found")
+var ErrProductNotFound = errors.New("product not found")
 
 type productUsecase struct {
 	repo         repository.ProductRepository
@@ -58,4 +61,24 @@ func (u *productUsecase) CreateProduct(req ProductRequest) error {
 	}
 
 	return u.repo.Create(context.Background(), product)
+}
+
+func (u *productUsecase) GetAllProducts(ctx context.Context) ([]*domain.Product, error) {
+	products, err := u.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+var ErrInvalidProductID = errors.New("invalid product id")
+
+func (u *productUsecase) GetProductByID(ctx context.Context, id string) (*domain.Product, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, ErrInvalidProductID
+	}
+
+	return u.repo.FindByID(ctx, objectID)
 }
