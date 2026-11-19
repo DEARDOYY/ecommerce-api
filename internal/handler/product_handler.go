@@ -43,4 +43,32 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		return
 
 	}
+
+	response.Message(c, http.StatusCreated, "Product created successfully")
+}
+
+func (h *ProductHandler) GetAllProducts(c *gin.Context) {
+	products, err := h.usecase.GetAllProducts(c.Request.Context())
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, products)
+}
+
+
+func (h *ProductHandler) GetProductByID(c *gin.Context) {
+	id := c.Param("id")
+	product, err := h.usecase.GetProductByID(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, usecase.ErrProductNotFound) {
+			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, product)
 }
