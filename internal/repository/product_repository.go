@@ -24,6 +24,8 @@ type ProductRepository interface {
 	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
 }
 
+var ErrProductExists = errors.New("product already exists")
+
 type productRepository struct {
 	collection *mongo.Collection
 }
@@ -41,8 +43,6 @@ func (r *productRepository) EnsureIndexes(ctx context.Context) error {
 	})
 	return err
 }
-
-var ErrProductExists = errors.New("product already exists")
 
 func (r *productRepository) Create(ctx context.Context, product *domain.Product) error {
 	result, err := r.collection.InsertOne(ctx, product)
