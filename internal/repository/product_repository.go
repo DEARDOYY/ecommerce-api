@@ -17,6 +17,11 @@ import (
 type ProductRepository interface {
 	EnsureIndexes(ctx context.Context) error
 	Create(ctx context.Context, product *domain.Product) error
+	FindAll(ctx context.Context) ([]*domain.Product, error)
+	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Product, error)
+	FindByName(ctx context.Context, name string) (*domain.Product, error)
+	Update(ctx context.Context, product *domain.Product) error
+	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
 }
 
 type productRepository struct {
@@ -49,5 +54,70 @@ func (r *productRepository) Create(ctx context.Context, product *domain.Product)
 	}
 
 	product.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
+}
+
+func (r *productRepository) FindAll(ctx context.Context) ([]*domain.Product, error) {
+	var products []*domain.Product
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var product domain.Product
+		if err := cursor.Decode(&product); err != nil {
+			return nil, err
+		}
+		products = append(products, &product)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (r *productRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Product, error) {
+	var product domain.Product
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&product)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func (r *productRepository) FindByName(ctx context.Context, name string) (*domain.Product, error) {
+	var product domain.Product
+	err := r.collection.FindOne(ctx, bson.M{"name": name}).Decode(&product)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &product, nil
+}
+
+func (r *productRepository) Update(ctx context.Context, product *domain.Product) error {
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": product.ID}, bson.M{"$set": product})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *productRepository) UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error {
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_active": status}})
+	if err != nil {
+		return err
+	}
 	return nil
 }
