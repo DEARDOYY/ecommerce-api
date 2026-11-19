@@ -15,6 +15,7 @@ type Handlers struct {
 	Auth     *handler.AuthHandler
 	Category *handler.CategoryHandler
 	User     *handler.UserHandler
+	Product  *handler.ProductHandler
 }
 
 func InitHandlers() *Handlers {
@@ -40,9 +41,22 @@ func InitHandlers() *Handlers {
 	categoryUsecase := usecase.NewCategoryUsecase(categoryRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryUsecase)
 
+	productCollection := database.GetCollection(os.Getenv("MONGO_DB_NAME"), "products")
+	productRepo := repository.NewProductRepository(productCollection)
+
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := productRepo.EnsureIndexes(ctx); err != nil {
+		log.Fatalf("failed to create product indexes: %v", err)
+	}
+
+	productUsecase := usecase.NewProductUsecase(productRepo, categoryRepo)
+	productHandler := handler.NewProductHandler(productUsecase)
+
 	return &Handlers{
 		Auth:     authHandler,
 		User:     userHandler,
 		Category: categoryHandler,
+		Product:  productHandler,
 	}
 }
