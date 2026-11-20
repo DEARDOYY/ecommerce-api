@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"regexp"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,6 +23,7 @@ type ProductRepository interface {
 	FindByName(ctx context.Context, name string) (*domain.Product, error)
 	Update(ctx context.Context, product *domain.Product) error
 	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
+	Search(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error)
 }
 
 var ErrProductExists = errors.New("product already exists")
@@ -41,7 +43,18 @@ func (r *productRepository) EnsureIndexes(ctx context.Context) error {
 		Keys:    bson.D{{Key: "name", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	_, err = r.collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{Keys: bson.D{{Key: "category_id", Value: 1}, {Key: "price", Value: 1}}},
+		{Keys: bson.D{{Key: "created_at", Value: -1}}},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *productRepository) Create(ctx context.Context, product *domain.Product) error {
@@ -120,4 +133,67 @@ func (r *productRepository) UpdateStatus(ctx context.Context, id primitive.Objec
 		return err
 	}
 	return nil
+}
+
+func (r *productRepository) Search(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error) {
+	filter := bson.M{"is_active": true}
+
+	if f.Q != "" {
+		pattern := regexp.QuoteMeta(f.Q)
+		filter["$or"] = bson.A{
+			bson.M{"name": bson.M{"$regex": pattern, "$options": "i"}},
+			bson.M{"description": bson.M{"$regex": pattern, "$options": "i"}},
+		}
+	}
+
+	if f.CategoryID != nil {
+		filter["category_id"] = f.CategoryID
+	}
+
+	price := bson.M{}
+	if f.MinPrice != nil {
+		price["$gte"] = *f.MinPrice
+	}
+	if f.MaxPrice != nil {
+		price["$lte"] = *f.MaxPrice
+	}
+	if len(price) > 0 {
+		filter["price"] = price
+	}
+
+	if f.InStock {
+		filter["stock"] = bson.M{"$gt": 0}
+	}
+
+	// sort
+	sort := bson.D{{Key: "created_at", Value: -1}}
+	switch f.Sort {
+	case "price_asc":
+		sort = bson.D{{Key: "price", Value: 1}}
+	case "price_desc":
+		sort = bson.D{{Key: "price", Value: -1}}
+	}
+
+	opts := options.Find().
+		SetSort(sort).
+		SetSkip((f.Page - 1) * f.Limit).
+		SetLimit(f.Limit)
+
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var products []*domain.Product
+	if err := cursor.All(ctx, &products); err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
 }
