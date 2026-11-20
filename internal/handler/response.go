@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -20,6 +21,18 @@ func bindJSON(c *gin.Context, dst any) bool {
 			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "request body is required")
 			return false
 		}
+
+		var syntaxErr *json.SyntaxError
+		var typeErr *json.UnmarshalTypeError
+		switch {
+		case errors.As(err, &syntaxErr), errors.Is(err, io.ErrUnexpectedEOF):
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "malformed JSON")
+			return false
+		case errors.As(err, &typeErr):
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, typeErr.Field+" has wrong type")
+			return false
+		}
+
 		response.Error(c, http.StatusBadRequest, response.ErrCodeValidation, validationMessage(err))
 		return false
 	}
