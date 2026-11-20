@@ -110,7 +110,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	var f domain.ProductFilter
 	if err := c.ShouldBindQuery(&f); err != nil {
-		response.Error(c, http.StatusBadRequest, response.ErrCodeBadRequest, "Invalid query parameters")
+		response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "Invalid query parameters")
 		return
 	}
 
