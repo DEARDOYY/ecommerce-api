@@ -86,3 +86,26 @@ func (h *ProductHandler) GetProductByName(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, product)
 }
+
+func (h *ProductHandler) UpdateProduct(c *gin.Context) {
+	id := c.Param("id")
+	var req usecase.UpdateProductRequest
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if err := h.usecase.UpdateProduct(c.Request.Context(), id, req); err != nil {
+		if errors.Is(err, usecase.ErrProductNotFound) {
+			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
+		return
+	}
+
+	response.Message(c, http.StatusOK, "Product updated successfully")
+}
+
+func (h *ProductHandler) SearchProducts(c *gin.Context) {
+
+}
