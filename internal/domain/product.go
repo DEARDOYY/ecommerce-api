@@ -23,3 +23,14 @@ type ProductWithCategory struct {
 	Product  `bson:",inline"`
 	Category *Category `bson:"category,omitempty" json:"category,omitempty"`
 }
+
+type ProductFilter struct {
+	Q          string
+	CategoryID *primitive.ObjectID
+	MinPrice   *float64
+	MaxPrice   *float64
+	InStock    bool
+	Sort       string // price_asc | price_desc | newest
+	Page       int64
+	Limit      int64
+}
