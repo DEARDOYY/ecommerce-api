@@ -10,6 +10,7 @@ const (
 	ErrCodeInternal       = "INTERNAL_ERROR"
 	ErrCodeNotFound       = "NOT_FOUND"
 	ErrCodeForbidden      = "FORBIDDEN"
+	ErrCodeBadRequest     = "BAD_REQUEST"
 )
 
 func Error(c *gin.Context, status int, code, message string) {
