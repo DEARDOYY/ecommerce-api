@@ -15,5 +15,7 @@ func ProductRoutes(rg *gin.RouterGroup, h *handler.ProductHandler) {
 		product.GET("", h.GetAllProducts)
 		product.GET("/:id", h.GetProductByID)
 		product.GET("/search", h.GetProductByName)
+		product.PUT("/:id", middleware.RequireRole("admin"), h.UpdateProduct)
+
 	}
 }
