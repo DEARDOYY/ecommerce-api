@@ -29,6 +29,8 @@ type ProductUsecase interface {
 	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
 	GetProductByID(ctx context.Context, id string) (*domain.Product, error)
 	GetProductByName(ctx context.Context, name string) (*domain.Product, error)
+	UpdateProduct(ctx context.Context, id string, req UpdateProductRequest) error
+	SearchProduct(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error)
 }
 
 var ErrCategoryNotFound = errors.New("category not found")
@@ -145,4 +147,13 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, id string, req Updat
 	}
 
 	return nil
+}
+
+func (u *productUsecase) SearchProduct(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error) {
+	products, count, err := u.repo.Search(ctx, f)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return products, count, nil
 }
