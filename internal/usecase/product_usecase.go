@@ -4,6 +4,7 @@ import (
 	"context"
 	"ecommerce-api/internal/repository"
 	"errors"
+	"time"
 
 	"ecommerce-api/internal/domain"
 
@@ -140,6 +141,7 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, id string, req Updat
 	product.Description = req.Description
 	product.Price = req.Price
 	product.CategoryID = categoryID
+	product.UpdatedAt = time.Now()
 
 	err = u.repo.Update(ctx, product)
 	if err != nil {
