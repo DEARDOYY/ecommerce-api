@@ -26,7 +26,7 @@ type UpdateProductRequest struct {
 }
 
 type UpdateProductStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=active inactive"`
+	Status *bool `json:"status" binding:"required"`
 }
 
 type ProductUsecase interface {
@@ -35,7 +35,7 @@ type ProductUsecase interface {
 	GetProductByID(ctx context.Context, id string) (*domain.Product, error)
 	UpdateProduct(ctx context.Context, id string, req UpdateProductRequest) error
 	SearchProduct(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error)
-	UpdateProductStatus(ctx context.Context, id string, status string) error
+	UpdateProductStatus(ctx context.Context, id string, status bool) error
 }
 
 var ErrCategoryNotFound = errors.New("category not found")
@@ -148,7 +148,7 @@ func (u *productUsecase) SearchProduct(ctx context.Context, f domain.SearchProdu
 	return products, count, nil
 }
 
-func (u *productUsecase) UpdateProductStatus(ctx context.Context, id string, status string) error {
+func (u *productUsecase) UpdateProductStatus(ctx context.Context, id string, status bool) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return ErrInvalidProductID
