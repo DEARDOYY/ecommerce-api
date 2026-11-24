@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
-	"strings"
 
 	"ecommerce-api/pkg/response"
 
@@ -18,7 +18,7 @@ import (
 func bindJSON(c *gin.Context, dst any) bool {
 	if err := c.ShouldBindJSON(dst); err != nil {
 		if errors.Is(err, io.EOF) {
-			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "request body is required")
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "invalid request body")
 			return false
 		}
 
@@ -26,10 +26,11 @@ func bindJSON(c *gin.Context, dst any) bool {
 		var typeErr *json.UnmarshalTypeError
 		switch {
 		case errors.As(err, &syntaxErr), errors.Is(err, io.ErrUnexpectedEOF):
-			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "malformed JSON")
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "invalid request body")
 			return false
 		case errors.As(err, &typeErr):
-			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, typeErr.Field+" has wrong type")
+			log.Printf("type error: field=%s expected=%s", typeErr.Field, typeErr.Type)
+			response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "invalid request body")
 			return false
 		}
 
@@ -45,19 +46,8 @@ func validationMessage(err error) string {
 		return "invalid request body"
 	}
 
-	field := strings.ToLower(ve[0].Field())
-	switch ve[0].Tag() {
-	case "required":
-		return field + " is required"
-	case "email":
-		return field + " must be a valid email"
-	case "min":
-		return field + " is too short"
-	case "max":
-		return field + " is too long"
-	default:
-		return field + " is invalid"
-	}
+	log.Printf("validation failed: field=%s tag=%s", ve[0].Field(), ve[0].Tag())
+	return "invalid request"
 }
 
 // authorizeSelfOrAdmin allows the request only when the logged-in user owns
@@ -71,6 +61,6 @@ func authorizeSelfOrAdmin(c *gin.Context, targetID string) bool {
 		return true
 	}
 
-	response.Error(c, http.StatusForbidden, response.ErrCodeForbidden, "you can only access your own account")
+	response.Error(c, http.StatusForbidden, response.ErrCodeForbidden, "forbidden")
 	return false
 }
