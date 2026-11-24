@@ -21,7 +21,7 @@ type ProductRepository interface {
 	FindAll(ctx context.Context) ([]*domain.Product, error)
 	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Product, error)
 	Update(ctx context.Context, product *domain.Product) error
-	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
+	UpdateStatus(ctx context.Context, id primitive.ObjectID, status bool) error
 	Search(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error)
 }
 
@@ -113,7 +113,7 @@ func (r *productRepository) Update(ctx context.Context, product *domain.Product)
 	return nil
 }
 
-func (r *productRepository) UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error {
+func (r *productRepository) UpdateStatus(ctx context.Context, id primitive.ObjectID, status bool) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_active": status}})
 	if err != nil {
 		return err
