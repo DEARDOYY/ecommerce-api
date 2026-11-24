@@ -73,21 +73,6 @@ func (h *ProductHandler) GetProductByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, product)
 }
 
-func (h *ProductHandler) GetProductByName(c *gin.Context) {
-	name := c.Query("name")
-	product, err := h.usecase.GetProductByName(c.Request.Context(), name)
-	if err != nil {
-		if errors.Is(err, usecase.ErrProductNotFound) {
-			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, product)
-}
-
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
 	var req usecase.UpdateProductRequest
@@ -108,10 +93,17 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 }
 
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
-	var f domain.ProductFilter
-	if err := c.ShouldBindQuery(&f); err != nil {
-		response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "Invalid query parameters")
+	var f domain.SearchProductRequest
+	if err := c.ShouldBindJSON(&f); err != nil {
+		response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "Invalid request body")
 		return
+	}
+
+	if f.Page < 1 {
+		f.Page = 1
+	}
+	if f.Limit < 1 {
+		f.Limit = 20
 	}
 
 	products, count, err := h.usecase.SearchProduct(c.Request.Context(), f)
@@ -124,4 +116,24 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 		"products": products,
 		"count":    count,
 	})
+}
+
+func (h *ProductHandler) UpdateProductStatus(c *gin.Context) {
+	id := c.Param("id")
+	var req usecase.UpdateProductStatusRequest
+
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if err := h.usecase.UpdateProductStatus(c.Request.Context(), id, req.Status); err != nil {
+		if errors.Is(err, usecase.ErrProductNotFound) {
+			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, response.ErrCodeInternal, err.Error())
+		return
+	}
+
+	response.Message(c, http.StatusOK, "Product status updated successfully")
 }
