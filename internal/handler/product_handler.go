@@ -94,8 +94,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	var f domain.SearchProductRequest
-	if err := c.ShouldBindJSON(&f); err != nil {
-		response.Error(c, http.StatusBadRequest, response.ErrCodeInvalidRequest, "Invalid request body")
+	if !bindJSON(c, &f) {
 		return
 	}
 
@@ -112,10 +111,7 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, map[string]interface{}{
-		"products": products,
-		"count":    count,
-	})
+	response.Paginated(c, http.StatusOK, products, f.Page, f.Limit, count)
 }
 
 func (h *ProductHandler) UpdateProductStatus(c *gin.Context) {
@@ -126,7 +122,7 @@ func (h *ProductHandler) UpdateProductStatus(c *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.UpdateProductStatus(c.Request.Context(), id, req.Status); err != nil {
+	if err := h.usecase.UpdateProductStatus(c.Request.Context(), id, *req.Status); err != nil {
 		if errors.Is(err, usecase.ErrProductNotFound) {
 			response.Error(c, http.StatusNotFound, response.ErrCodeNotFound, "Product not found")
 			return
