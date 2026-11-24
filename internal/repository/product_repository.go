@@ -20,10 +20,9 @@ type ProductRepository interface {
 	Create(ctx context.Context, product *domain.Product) error
 	FindAll(ctx context.Context) ([]*domain.Product, error)
 	FindByID(ctx context.Context, id primitive.ObjectID) (*domain.Product, error)
-	FindByName(ctx context.Context, name string) (*domain.Product, error)
 	Update(ctx context.Context, product *domain.Product) error
 	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
-	Search(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error)
+	Search(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error)
 }
 
 var ErrProductExists = errors.New("product already exists")
@@ -106,19 +105,6 @@ func (r *productRepository) FindByID(ctx context.Context, id primitive.ObjectID)
 	return &product, nil
 }
 
-func (r *productRepository) FindByName(ctx context.Context, name string) (*domain.Product, error) {
-	var product domain.Product
-	err := r.collection.FindOne(ctx, bson.M{"name": name}).Decode(&product)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &product, nil
-}
-
 func (r *productRepository) Update(ctx context.Context, product *domain.Product) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": product.ID}, bson.M{"$set": product})
 	if err != nil {
@@ -135,7 +121,7 @@ func (r *productRepository) UpdateStatus(ctx context.Context, id primitive.Objec
 	return nil
 }
 
-func (r *productRepository) Search(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error) {
+func (r *productRepository) Search(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error) {
 	filter := bson.M{"is_active": true}
 
 	if f.Q != "" {
@@ -146,8 +132,16 @@ func (r *productRepository) Search(ctx context.Context, f domain.ProductFilter) 
 		}
 	}
 
-	if f.CategoryID != nil {
-		filter["category_id"] = f.CategoryID
+	if f.Name != "" {
+		filter["name"] = bson.M{"$regex": regexp.QuoteMeta(f.Name), "$options": "i"}
+	}
+
+	if f.CategoryID != nil && *f.CategoryID != "" {
+		categoryID, err := primitive.ObjectIDFromHex(*f.CategoryID)
+		if err != nil {
+			return nil, 0, errors.New("invalid category_id")
+		}
+		filter["category_id"] = categoryID
 	}
 
 	price := bson.M{}
