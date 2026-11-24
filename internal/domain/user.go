@@ -11,7 +11,7 @@ type User struct {
 	Name      string             `bson:"name" json:"name"`
 	Email     string             `bson:"email" json:"email"`
 	Password  string             `bson:"password" json:"-"`
-	Role      string             `bson:"role" json:"role"` // "user" | "admin"
+	Role      string             `bson:"role" json:"role"` // "user" | "admin" | "customer"
 	Address   []Address          `bson:"address" json:"address"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
