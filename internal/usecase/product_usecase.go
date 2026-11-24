@@ -25,13 +25,17 @@ type UpdateProductRequest struct {
 	CategoryID  string  `json:"category_id" binding:"required"`
 }
 
+type UpdateProductStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=active inactive"`
+}
+
 type ProductUsecase interface {
 	CreateProduct(req ProductRequest) error
 	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
 	GetProductByID(ctx context.Context, id string) (*domain.Product, error)
-	GetProductByName(ctx context.Context, name string) (*domain.Product, error)
 	UpdateProduct(ctx context.Context, id string, req UpdateProductRequest) error
-	SearchProduct(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error)
+	SearchProduct(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error)
+	UpdateProductStatus(ctx context.Context, id string, status string) error
 }
 
 var ErrCategoryNotFound = errors.New("category not found")
@@ -94,22 +98,6 @@ func (u *productUsecase) GetProductByID(ctx context.Context, id string) (*domain
 	return u.repo.FindByID(ctx, objectID)
 }
 
-func (u *productUsecase) GetProductByName(ctx context.Context, name string) (*domain.Product, error) {
-	if name == "" {
-		return nil, ErrInvalidProductName
-	}
-
-	product, err := u.repo.FindByName(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	if product == nil {
-		return nil, ErrProductNotFound
-	}
-
-	return product, nil
-}
-
 func (u *productUsecase) UpdateProduct(ctx context.Context, id string, req UpdateProductRequest) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -151,11 +139,33 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, id string, req Updat
 	return nil
 }
 
-func (u *productUsecase) SearchProduct(ctx context.Context, f domain.ProductFilter) ([]*domain.Product, int64, error) {
+func (u *productUsecase) SearchProduct(ctx context.Context, f domain.SearchProductRequest) ([]*domain.Product, int64, error) {
 	products, count, err := u.repo.Search(ctx, f)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	return products, count, nil
+}
+
+func (u *productUsecase) UpdateProductStatus(ctx context.Context, id string, status string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ErrInvalidProductID
+	}
+
+	product, err := u.repo.FindByID(ctx, objectID)
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		return ErrProductNotFound
+	}
+
+	err = u.repo.UpdateStatus(ctx, objectID, status)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
