@@ -24,13 +24,14 @@ type ProductWithCategory struct {
 	Category *Category `bson:"category,omitempty" json:"category,omitempty"`
 }
 
-type ProductFilter struct {
-	Q          string
-	CategoryID *primitive.ObjectID
-	MinPrice   *float64
-	MaxPrice   *float64
-	InStock    bool
-	Sort       string // price_asc | price_desc | newest
-	Page       int64
-	Limit      int64
+type SearchProductRequest struct {
+	Q          string   `json:"q"`
+	Name       string   `json:"name"`
+	CategoryID *string  `json:"category_id"`
+	MinPrice   *float64 `json:"min_price" binding:"omitempty,gte=0"`
+	MaxPrice   *float64 `json:"max_price" binding:"omitempty,gte=0"`
+	InStock    bool     `json:"in_stock"`
+	Sort       string   `json:"sort" binding:"omitempty,oneof=newest price_asc price_desc"`
+	Page       int64    `json:"page" binding:"omitempty,gte=1"`
+	Limit      int64    `json:"limit" binding:"omitempty,gte=1,lte=100"`
 }
